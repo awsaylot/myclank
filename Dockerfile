@@ -25,9 +25,6 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install PyTorch with CUDA 11.8 support for GTX 1080
-RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cu118
-
 # Copy your application code
 COPY . .
 
