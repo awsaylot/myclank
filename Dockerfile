@@ -25,9 +25,16 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Install PyTorch with CUDA 11.8 support for GTX 1080
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cu118
+
 # Copy your application code
 COPY . .
 
+# Create models and data directories
+RUN mkdir -p /app/models /app/data
+
 EXPOSE 8000
 
-CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Fix: Use server:app instead of main:app since your FastAPI app is in server.py
+CMD ["python", "-m", "uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000"]

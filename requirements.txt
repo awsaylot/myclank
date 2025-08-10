@@ -1,9 +1,7 @@
 fastapi
 uvicorn[standard]
-transformers
-torch --index-url https://download.pytorch.org/whl/cu126
-torchvision --index-url https://download.pytorch.org/whl/cu126
-torchaudio --index-url https://download.pytorch.org/whl/cu126
-bitsandbytes
+transformers==4.45.2
+torch
+bitsandbytes==0.44.1
 accelerate
 pydantic
