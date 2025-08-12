@@ -78,4 +78,8 @@ target/
 *.swp
 *.lock
 
+*.gguf
+
 awqenv/
+
+models/
