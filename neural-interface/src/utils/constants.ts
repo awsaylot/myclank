@@ -1,8 +1,13 @@
-// API endpoints for llama.cpp server
+// API endpoints for Neural MCP server
 export const API_ENDPOINTS = {
   CHAT: '/v1/chat/completions',
-  STATUS: '/status',   // llama.cpp doesn't have this, but you could implement one
-  HEALTH: '/health',   // same here — optional if you build one
+  STATUS: '/status',
+  HEALTH: '/health',
+} as const;
+
+// Backend configuration
+export const BACKEND_CONFIG = {
+  BASE_URL: 'http://localhost:3001',
 } as const;
 
 export const UI_CONSTANTS = {

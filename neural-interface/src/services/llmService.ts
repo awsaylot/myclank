@@ -1,10 +1,10 @@
 import { ChatMessage, LLMResponse } from '../types/chat';
-import { API_ENDPOINTS, UI_CONSTANTS } from '../utils/constants';
+import { API_ENDPOINTS, UI_CONSTANTS, BACKEND_CONFIG } from '../utils/constants';
 
 class LLMService {
   private baseUrl: string;
 
-  constructor(baseUrl: string = 'http://localhost:8080') {
+  constructor(baseUrl: string = BACKEND_CONFIG.BASE_URL) {
     this.baseUrl = baseUrl;
   }
 
@@ -15,16 +15,24 @@ class LLMService {
         return this.offlineFallback(message);
       }
 
+      // Convert conversation history to the format expected by the backend
+      const messages = [
+        ...conversationHistory
+          .filter(msg => msg.role !== 'system') // Filter out system messages for now
+          .map(msg => ({
+            role: msg.role,
+            content: msg.content
+          })),
+        { role: 'user', content: message }
+      ];
+
       const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CHAT}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: UI_CONSTANTS.MODEL_NAME,
-          messages: [
-            ...conversationHistory,
-            { role: 'user', content: message }
-          ],
-          max_tokens: 128
+          messages,
+          max_tokens: 128 // Match your curl example
         }),
       });
 
@@ -34,6 +42,11 @@ class LLMService {
 
       const data = await response.json();
 
+      // Handle potential error response from backend
+      if (data.error) {
+        throw new Error(data.error.message || 'Unknown error from server');
+      }
+
       return {
         content: data.choices?.[0]?.message?.content ?? '[No response received]',
         model: data.model ?? UI_CONSTANTS.MODEL_NAME,
@@ -41,14 +54,14 @@ class LLMService {
         tokens: data.usage?.total_tokens ?? 0,
       };
     } catch (error) {
-      console.error('Error communicating with LLM:', error);
+      console.error('Error communicating with Neural MCP server:', error);
       return this.offlineFallback(message);
     }
   }
 
   private offlineFallback(message: string): LLMResponse {
     return {
-      content: `⚠️ LLM server is offline. Could not process: "${message}"`,
+      content: `⚠️ Neural MCP server is offline. Could not process: "${message}"`,
       model: 'offline-fallback',
       timestamp: new Date().toISOString(),
       tokens: 0,
@@ -57,9 +70,18 @@ class LLMService {
 
   async healthCheck(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.HEALTH}`, { method: 'GET' });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.HEALTH}`, { 
+        method: 'GET',
+        signal: controller.signal 
+      });
+      
+      clearTimeout(timeoutId);
       return response.ok;
-    } catch {
+    } catch (error) {
+      console.error('Health check failed:', error);
       return false;
     }
   }
@@ -67,6 +89,11 @@ class LLMService {
   async getStatus() {
     try {
       const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.STATUS}`);
+      
+      if (!response.ok) {
+        throw new Error(`Status check failed: ${response.status}`);
+      }
+      
       return await response.json();
     } catch (error) {
       return {

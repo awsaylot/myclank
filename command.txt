@@ -3,3 +3,9 @@ docker run --gpus all --rm -it -v ${PWD}:/models -p 8080:8080 ghcr.io/ggml-org/l
 
 Use this to test
 curl -X POST http://0.0.0.0:8080/v1/chat/completions -H "Content-Type: application/json" -d '{"model":"CodeLlama-7b-Instruct-hf.Q6_K.gguf","messages":[{"role":"user","content":"Once upon a time,"}],"max_tokens":128}'
+
+more gpu
+docker run --gpus all --rm -it -v ${PWD}:/models -p 8080:8080 ghcr.io/ggml-org/llama.cpp:full-cuda -s -m /models/CodeLlama-7b-Instruct-hf.Q6_K.gguf -ngl 15 --port 8080 --host 0.0.0.0
+
+
+curl -X POST http://0.0.0.0:8080/v1/chat/completions -H "Content-Type: application/json" -d '{"model":"CodeLlama-7b-Instruct-hf.Q6_K.gguf","messages":[{"role":"user","content":"so, you remember things i previously said to you? what was the second thing i said to you?"}],"max_tokens":64,"temperature":0.7,"top_p":0.9,"top_k":40}'
