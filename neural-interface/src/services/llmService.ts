@@ -1,26 +1,30 @@
 import { ChatMessage, LLMResponse } from '../types/chat';
-import { API_ENDPOINTS } from '../utils/constants';
+import { API_ENDPOINTS, UI_CONSTANTS } from '../utils/constants';
 
 class LLMService {
   private baseUrl: string;
 
-  constructor(baseUrl: string = 'http://localhost:3001') {
+  constructor(baseUrl: string = 'http://localhost:8080') {
     this.baseUrl = baseUrl;
   }
 
-  // Placeholder for sending messages to your future LLM server
   async sendMessage(message: string, conversationHistory: ChatMessage[] = []): Promise<LLMResponse> {
     try {
-      // TODO: Replace with actual API call when server is ready
+      const isOnline = await this.healthCheck();
+      if (!isOnline) {
+        return this.offlineFallback(message);
+      }
+
       const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.CHAT}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message,
-          history: conversationHistory,
-          model: 'deepseek-neural-7b',
+          model: UI_CONSTANTS.MODEL_NAME,
+          messages: [
+            ...conversationHistory,
+            { role: 'user', content: message }
+          ],
+          max_tokens: 128
         }),
       });
 
@@ -28,47 +32,38 @@ class LLMService {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      const data = await response.json();
+
+      return {
+        content: data.choices?.[0]?.message?.content ?? '[No response received]',
+        model: data.model ?? UI_CONSTANTS.MODEL_NAME,
+        timestamp: new Date().toISOString(),
+        tokens: data.usage?.total_tokens ?? 0,
+      };
     } catch (error) {
-      // Fallback: Simulate response for development
-      return this.simulateResponse(message);
+      console.error('Error communicating with LLM:', error);
+      return this.offlineFallback(message);
     }
   }
 
-  // Simulate LLM response for development/testing
-  private async simulateResponse(message: string): Promise<LLMResponse> {
-    // Add realistic delay
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-
-    const responses = [
-      "Neural pathways analyzed. Processing query through quantum matrices...",
-      "Accessing deep learning networks... Query processed successfully.",
-      "Quantum AI core engaged. Generating optimized response pattern.",
-      "Neural network synchronized. Data streams flowing through secure channels.",
-      "AI consciousness interface active. Computing multidimensional response vectors.",
-    ];
-
+  private offlineFallback(message: string): LLMResponse {
     return {
-      content: responses[Math.floor(Math.random() * responses.length)],
-      model: 'deepseek-neural-7b-simulator',
+      content: `⚠️ LLM server is offline. Could not process: "${message}"`,
+      model: 'offline-fallback',
       timestamp: new Date().toISOString(),
-      tokens: Math.floor(Math.random() * 100) + 50,
+      tokens: 0,
     };
   }
 
-  // Health check for the LLM service
   async healthCheck(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.HEALTH}`, {
-        method: 'GET',
-      });
+      const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.HEALTH}`, { method: 'GET' });
       return response.ok;
     } catch {
       return false;
     }
   }
 
-  // Get service status
   async getStatus() {
     try {
       const response = await fetch(`${this.baseUrl}${API_ENDPOINTS.STATUS}`);
