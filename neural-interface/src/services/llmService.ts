@@ -32,7 +32,9 @@ class LLMService {
         body: JSON.stringify({
           model: UI_CONSTANTS.MODEL_NAME,
           messages,
-          max_tokens: 128 // Match your curl example
+          max_tokens: 2048, // Increased from 128 to allow full responses
+          temperature: 0.7, // Optional: add some creativity to responses
+          stop: null, // Let the model decide when to stop naturally
         }),
       });
 

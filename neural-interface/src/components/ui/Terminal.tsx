@@ -1,13 +1,16 @@
 import { ReactNode } from 'react';
 import { SYSTEM_MESSAGES, STATUS_MESSAGES } from '../../utils/constants';
+import { MessageList } from '../chat/MessageList';
+import { ChatMessage } from '../../types/chat';
 
 interface TerminalProps {
-  children: ReactNode;
   currentTime: string;
   isConnected: boolean;
+  messages: ChatMessage[];
+  onRetry: () => void;
 }
 
-export function Terminal({ children, currentTime, isConnected }: TerminalProps) {
+export function Terminal({ currentTime, isConnected, messages, onRetry }: TerminalProps) {
   return (
     <div className="main-content">
       <div className="terminal-header">
@@ -36,7 +39,18 @@ export function Terminal({ children, currentTime, isConnected }: TerminalProps) 
             </div>
           </div>
 
-          {children}
+          {/* Messages appear here in the terminal window */}
+          {messages.length > 0 && (
+            <>
+              <div className="separator" style={{ marginTop: '20px' }}>
+                _______________________________________
+              </div>
+              <MessageList 
+                messages={messages}
+                onRetry={onRetry}
+              />
+            </>
+          )}
         </div>
       </div>
     </div>

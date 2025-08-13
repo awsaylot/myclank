@@ -183,11 +183,17 @@ body {
     0 0 20px rgba(0, 255, 65, 0.3),
     inset 0 0 20px rgba(0, 255, 65, 0.1);
   backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  scroll-behavior: smooth;
 }
 
 .terminal-content {
   font-size: 13px;
   line-height: 1.6;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .init-text {
@@ -232,20 +238,88 @@ body {
   margin-top: 5px;
 }
 
-.chat-messages {
-  margin-top: 20px;
+/* Messages in terminal context */
+.terminal-content .chat-messages {
+  margin-top: 15px;
+  flex: 1;
+  width: 100%;
 }
 
-.message {
-  color: #00ff41;
-  margin: 8px 0;
-  opacity: 0.9;
+.terminal-content .message {
+  margin: 12px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  display: block;
+  width: 100%;
+  min-height: fit-content;
 }
 
-.message .prompt {
+.terminal-content .message-prefix {
   color: #00ff41;
   font-weight: bold;
-  margin-right: 5px;
+  text-shadow: 0 0 5px #00ff41;
+}
+
+.terminal-content .message-content {
+  color: #00ff41;
+  opacity: 0.9;
+  white-space: pre-wrap;
+  overflow-wrap: normal;
+  word-break: normal;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  padding: 4px 0;
+  box-sizing: border-box;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  tab-size: 4;
+}
+
+.terminal-content .message-timestamp {
+  color: rgba(0, 255, 65, 0.5);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.terminal-content .message-assistant .message-content {
+  color: #00ff88;
+  opacity: 0.95;
+}
+
+.terminal-content .message-system .message-content {
+  color: #ffaa00;
+  font-style: italic;
+}
+
+.terminal-content .message-sending .message-content {
+  opacity: 0.7;
+  animation: pulse 1.5s infinite;
+}
+
+.terminal-content .message-error .message-content {
+  color: #ff4444;
+  opacity: 0.8;
+}
+
+.terminal-content .loading-dots {
+  animation: loadingDots 1.5s infinite;
+}
+
+.terminal-content .retry-button {
+  background: rgba(255, 68, 68, 0.1);
+  border: 1px solid #ff4444;
+  color: #ff4444;
+  padding: 2px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 10px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.terminal-content .retry-button:hover {
+  background: rgba(255, 68, 68, 0.2);
+  transform: translateY(-1px);
 }
 
 /* Bottom Terminal */
@@ -298,9 +372,27 @@ body {
   border: none;
   outline: none;
   color: #00ff41;
-  font-family: inherit;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
   font-size: 14px;
   padding: 5px 10px;
+  white-space: pre;
+  overflow-wrap: normal;
+  resize: none;
+  tab-size: 4;
+  line-height: 1.4;
+}
+
+.neural-input::-webkit-scrollbar {
+  width: 4px;
+}
+
+.neural-input::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.neural-input::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 65, 0.3);
+  border-radius: 2px;
 }
 
 .neural-input::placeholder {
@@ -396,19 +488,19 @@ body {
   }
 }
 
-/* Scrollbar */
+/* Scrollbar for terminal window */
 .terminal-window::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .terminal-window::-webkit-scrollbar-track {
   background: rgba(0, 0, 0, 0.3);
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .terminal-window::-webkit-scrollbar-thumb {
   background: #00ff41;
-  border-radius: 3px;
+  border-radius: 4px;
   box-shadow: 0 0 5px #00ff41;
 }
 
@@ -448,9 +540,7 @@ body {
   }
 }
 
-/* Additional styles for refactored components */
-
-/* Message styling */
+/* Message styling - for when messages were in separate container (legacy) */
 .message {
   margin: 8px 0;
   font-size: 13px;
@@ -570,7 +660,7 @@ body {
   }
 }
 
-/* Chat messages container */
+/* Chat messages container - legacy styles */
 .chat-messages {
   margin-top: 15px;
   max-height: 300px;

@@ -1,24 +1,25 @@
-import { useChat } from '../../hooks/useChat';
-import { MessageList } from './MessageList';
 import { InputForm } from '../ui/InputForm';
 import { BottomStatus } from '../ui/BottomStatus';
 
 interface ChatContainerProps {
   systemStatus: any;
   isConnected: boolean;
+  sendMessage: (message: string) => Promise<void>;
+  isLoading: boolean;
+  error?: string | null;
+  clearMessages: () => void;
+  hasMessages: boolean;
 }
 
-export function ChatContainer({ systemStatus, isConnected }: ChatContainerProps) {
-  const { 
-    messages, 
-    isLoading, 
-    error, 
-    connectionStatus,
-    sendMessage, 
-    clearMessages, 
-    retryLastMessage 
-  } = useChat();
-
+export function ChatContainer({ 
+  systemStatus, 
+  isConnected, 
+  sendMessage, 
+  isLoading, 
+  error, 
+  clearMessages, 
+  hasMessages 
+}: ChatContainerProps) {
   return (
     <>
       {/* Terminal Prompt */}
@@ -34,12 +35,6 @@ export function ChatContainer({ systemStatus, isConnected }: ChatContainerProps)
         isConnected={isConnected}
       />
 
-      {/* Message List */}
-      <MessageList 
-        messages={messages}
-        onRetry={retryLastMessage}
-      />
-
       {/* Bottom Status */}
       <BottomStatus 
         systemStatus={systemStatus}
@@ -48,7 +43,7 @@ export function ChatContainer({ systemStatus, isConnected }: ChatContainerProps)
       />
 
       {/* Debug Actions (can be removed in production) */}
-      {messages.length > 0 && (
+      {hasMessages && (
         <div className="debug-actions" style={{ marginTop: '10px', fontSize: '10px' }}>
           <button 
             onClick={clearMessages}

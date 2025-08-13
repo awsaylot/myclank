@@ -2,6 +2,7 @@
 
 import { useTime } from '../hooks/useTime';
 import { useConnection } from '../hooks/useConnection';
+import { useChat } from '../hooks/useChat';
 import { Header } from './ui/Header';
 import { StatusBar } from './ui/StatusBar';
 import { Terminal } from './ui/Terminal';
@@ -10,6 +11,15 @@ import { ChatContainer } from './chat/ChatContainer';
 export function NeuralInterface() {
   const { currentTime, currentDate } = useTime();
   const { connectionStatus, systemStatus, isConnected } = useConnection();
+  const { 
+    messages, 
+    isLoading, 
+    error, 
+    connectionStatus: chatConnectionStatus,
+    sendMessage, 
+    clearMessages, 
+    retryLastMessage 
+  } = useChat();
 
   return (
     <div className="neural-interface">
@@ -25,19 +35,24 @@ export function NeuralInterface() {
         isConnected={isConnected}
       />
 
-      {/* Main Terminal Content */}
+      {/* Main Terminal Content with Messages */}
       <Terminal 
         currentTime={currentTime}
         isConnected={isConnected}
-      >
-        {/* This space will show chat messages */}
-      </Terminal>
+        messages={messages}
+        onRetry={retryLastMessage}
+      />
 
-      {/* Bottom Terminal with Chat */}
+      {/* Bottom Terminal with Chat Input */}
       <div className="bottom-terminal">
         <ChatContainer 
           systemStatus={systemStatus}
           isConnected={isConnected}
+          sendMessage={sendMessage}
+          isLoading={isLoading}
+          error={error}
+          clearMessages={clearMessages}
+          hasMessages={messages.length > 0}
         />
       </div>
     </div>

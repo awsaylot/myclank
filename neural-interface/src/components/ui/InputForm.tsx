@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { UI_CONSTANTS } from '../../utils/constants';
 
 interface InputFormProps {
@@ -9,11 +9,20 @@ interface InputFormProps {
 
 export function InputForm({ onSubmit, isLoading, isConnected }: InputFormProps) {
   const [input, setInput] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-resize textarea based on content
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
+    }
+  }, [input]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim() && !isLoading && isConnected) {
-      onSubmit(input.trim());
+      onSubmit(input); // Don't trim here to preserve whitespace
       setInput('');
     }
   };
@@ -25,25 +34,40 @@ export function InputForm({ onSubmit, isLoading, isConnected }: InputFormProps) 
     }
   };
 
+  const handlePaste = (e: React.ClipboardEvent) => {
+    // Allow default paste behavior to preserve formatting
+    const pastedText = e.clipboardData.getData('text');
+    console.log('Pasted text length:', pastedText.length);
+    console.log('Pasted text preview:', pastedText.substring(0, 100) + '...');
+  };
+
   return (
     <form onSubmit={handleSubmit} className="input-form">
       <div className="input-container">
         <span className="input-prompt">&#62;</span>
-        <input
-          type="text"
+        <textarea
+          ref={textareaRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
           placeholder={
             !isConnected 
               ? "Establishing neural connection..." 
               : isLoading 
               ? "Processing..." 
-              : "Enter neural command or query..."
+              : "Enter neural command or query... (Shift+Enter for new line)"
           }
           className="neural-input"
           maxLength={UI_CONSTANTS.MAX_INPUT_LENGTH}
           disabled={isLoading || !isConnected}
+          rows={1}
+          style={{
+            resize: 'none',
+            overflow: 'hidden',
+            minHeight: '20px',
+            maxHeight: '120px'
+          }}
         />
         <span className="char-count">
           {input.length}/{UI_CONSTANTS.MAX_INPUT_LENGTH}

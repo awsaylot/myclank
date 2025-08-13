@@ -43,28 +43,34 @@ export function ChatMessage({ message, onRetry }: ChatMessageProps) {
     });
   };
 
+  // Debug: Log message content length
+  console.log(`Message ${message.id} content length: ${message.content.length}`);
+
   return (
     <div className={getMessageClass()}>
-      <span className="message-prefix">{getMessagePrefix()}</span>
-      <span className="message-content">
-        {message.status === 'sending' && message.content === '' ? (
-          <span className="loading-dots">Processing neural patterns...</span>
-        ) : (
-          message.content
+      <div style={{ width: '100%', display: 'block' }}>
+        <span className="message-prefix">{getMessagePrefix()}</span>
+        <span className="message-timestamp" style={{ float: 'right' }}>
+          [{formatTimestamp(message.timestamp)}]
+        </span>
+        <div className="message-content" style={{ clear: 'both', marginTop: '2px' }}>
+          {message.status === 'sending' && message.content === '' ? (
+            <span className="loading-dots">Processing neural patterns...</span>
+          ) : (
+            message.content
+          )}
+        </div>
+        {message.status === 'error' && onRetry && (
+          <button 
+            onClick={onRetry}
+            className="retry-button"
+            aria-label="Retry message"
+            style={{ marginTop: '4px' }}
+          >
+            ↻ RETRY
+          </button>
         )}
-      </span>
-      <span className="message-timestamp">
-        [{formatTimestamp(message.timestamp)}]
-      </span>
-      {message.status === 'error' && onRetry && (
-        <button 
-          onClick={onRetry}
-          className="retry-button"
-          aria-label="Retry message"
-        >
-          ↻ RETRY
-        </button>
-      )}
+      </div>
     </div>
   );
 }
